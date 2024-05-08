@@ -1,12 +1,13 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { fetchEvent, deleteEvent } from '../../util/http'
+import { fetchEvent, deleteEvent, queryClient } from '../../util/http'
 import ErrorBlock from '../UI/ErrorBlock.jsx';
 import Header from '../Header.jsx';
 
 export default function EventDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['events', { id }],
     queryFn: ({signal}) => fetchEvent({ signal, id })
@@ -19,8 +20,7 @@ export default function EventDetails() {
     }
   });
 
-  function handleDelete(event) {
-    event.preventDefault();
+  async function handleDelete(event) {
     mutate({ id });
   }
 
