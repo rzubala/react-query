@@ -4,15 +4,19 @@ import { useParams } from 'react-router-dom';
 import { fetchEvent, deleteEvent, queryClient } from '../../util/http'
 import ErrorBlock from '../UI/ErrorBlock.jsx';
 import Header from '../Header.jsx';
+import Modal from '../UI/Modal';
+import { useState } from 'react';
 
 export default function EventDetails() {
+  const [isDeleting, setIsDeleting ] = useState(false);
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['events', { id }],
     queryFn: ({signal}) => fetchEvent({ signal, id })
   });
-  const { mutate } = useMutation({
+  const { mutate, isPending: isPendingDeletion, isError: isErrorDeleting, error: deleteError } = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -23,12 +27,34 @@ export default function EventDetails() {
     }
   });
 
+  function handleStartDelete() {
+    setIsDeleting(true);
+  }
+
+  function handleStopDelete() {
+    setIsDeleting(false);
+  }
+
   async function handleDelete(event) {
     mutate({ id });
   }
 
   return (
     <>
+      {isDeleting && <Modal onClose={handleStopDelete}>
+        <h2>Arey you sure?</h2>
+        <p>Really?</p>
+        <div className='form-actions'>
+          {isPendingDeletion && <p>Deleting, please wait</p>}
+          {!isPendingDeletion && (
+            <>
+              <button onClick={handleStopDelete}>Cancel</button>
+              <button onClick={handleDelete}>Delete</button>
+            </>
+          )}
+        </div>
+        {isErrorDeleting && <ErrorBlock title="Failed to delete" message={deleteError.info?.message ?? 'Failed to delete event'} /> }
+      </Modal>}
       <Outlet />
       <Header>
         <Link to="/events" className="nav-item">
@@ -41,7 +67,7 @@ export default function EventDetails() {
         <header>
           <h1>{data.title}</h1>
           <nav>
-            <button onClick={handleDelete} >Delete</button>
+            <button onClick={handleStartDelete} >Delete</button>
             <Link to="edit">Edit</Link>
           </nav>
         </header>
