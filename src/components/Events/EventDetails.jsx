@@ -13,7 +13,7 @@ export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isPending, isError, error } = useQuery({
-    queryKey: ['events', { id }],
+    queryKey: ['events', id],
     queryFn: ({signal}) => fetchEvent({ signal, id })
   });
   const { mutate, isPending: isPendingDeletion, isError: isErrorDeleting, error: deleteError } = useMutation({
